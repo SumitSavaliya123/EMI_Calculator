@@ -1,9 +1,8 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatSliderModule } from '@angular/material/slider';
-import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-slider-input',
@@ -29,16 +28,16 @@ export class SliderInputComponent {
 
   constructor(private decimalPipe: DecimalPipe) {}
 
-  onInputChange(val: any) {
+  onInputChange(val: string | number) {
     const numValue = typeof val === 'string' ? +val.replace(/,/g, '') : val;
     this.modelChange.emit(+numValue);
     this.valueChanged.emit();
   }
 
-  onBlur(event: any) {
-    const input = event.target;
-    const numValue = +input.value.replace(/,/g, '');
-    input.value = this.decimalPipe.transform(numValue) || '';
+  onBlur(event: FocusEvent) {
+    const target = event.target as HTMLInputElement;
+    const numValue = +target.value.replace(/,/g, '');
+    target.value = this.decimalPipe.transform(numValue) || '';
   }
 
   toggleTenureUnit(unit: 'Yr' | 'Mo') {

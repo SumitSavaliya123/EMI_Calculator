@@ -10,17 +10,7 @@
     [model]="loanAmount"
     (modelChange)="loanAmount = $event"
     (valueChanged)="calculateEMI()"
-    [sliderLabels]="[
-      '0',
-      '25L',
-      '50L',
-      '75L',
-      '100L',
-      '125L',
-      '150L',
-      '175L',
-      '200L'
-    ]"
+    [sliderLabels]="loanAmountLabels"
   />
 
   <app-slider-input
@@ -32,7 +22,7 @@
     [model]="interestRate"
     (modelChange)="interestRate = $event"
     (valueChanged)="calculateEMI()"
-    [sliderLabels]="['5', '7.5', '10', '12.5', '15', '17.5', '20']"
+    [sliderLabels]="interestRateLabels"
   />
 
   <app-slider-input
@@ -44,11 +34,7 @@
     [model]="loanTenure"
     (modelChange)="loanTenure = $event"
     (valueChanged)="calculateEMI()"
-    [sliderLabels]="
-      tenureUnit === 'Yr'
-        ? ['0', '5', '10', '15', '20', '25', '30']
-        : ['0', '60', '120', '180', '240', '300', '360']
-    "
+    [sliderLabels]="tenureUnit === 'Yr' ? yearTenureLabels : monthTenureLabels"
     [showTenureToggle]="true"
     [tenureUnit]="tenureUnit"
     (tenureUnitChange)="setTenureUnit($event)"
@@ -76,17 +62,17 @@
           <canvas #loanChart></canvas>
         </div>
         <div class="d-flex justify-content-center gap-4 mt-2 border row">
-          <div class="col-lg-5 col-md-6 col-sm-12">
+          <div class="col-lg-6 col-md-12">
             <span class="legend-dot principal"></span>
-            <span
-              >Principal:
+            <span class="legend-label"
+              >Principal Loan Amount:
               {{ ((loanAmount / totalPayment) * 100).toFixed(1) }}%</span
             >
           </div>
-          <div class="col-lg-5 col-md-6 col-sm-12">
+          <div class="col-lg-5 col-md-12">
             <span class="legend-dot interest"></span>
-            <span
-              >Interest:
+            <span class="legend-label"
+              >Total Interest:
               {{ ((totalInterest / totalPayment) * 100).toFixed(1) }}%</span
             >
           </div>

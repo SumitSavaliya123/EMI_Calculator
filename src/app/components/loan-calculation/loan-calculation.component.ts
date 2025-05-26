@@ -1,11 +1,11 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatSliderModule } from '@angular/material/slider';
-import { SliderInputComponent } from '../slider-input/slider-input.component';
+import Chart from 'chart.js/auto';
+import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels';
 import { CeilPipe } from '../../pipes/ceil.pipe';
-import Chart, { ChartConfiguration } from 'chart.js/auto';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { SliderInputComponent } from '../slider-input/slider-input.component';
 
 Chart.register(ChartDataLabels);
 @Component({
@@ -29,7 +29,11 @@ export class LoanCalculationComponent implements OnInit {
   emi = 0;
   totalInterest = 0;
   totalPayment = 0;
-  chart: any;
+  loanAmountLabels = ['0', '50L', '100L', '150L', '200L'];
+  interestRateLabels = ['5', '7.5', '10', '12.5', '15', '17.5', '20'];
+  yearTenureLabels = ['0', '5', '10', '15', '20', '25', '30'];
+  monthTenureLabels = ['0', '60', '120', '180', '240', '300', '360'];
+  chart: Chart | undefined;
 
   @ViewChild('loanChart', { static: true }) loanChart!: ElementRef;
 
@@ -70,53 +74,68 @@ export class LoanCalculationComponent implements OnInit {
     this.totalPayment = this.emi * N;
     this.totalInterest = this.totalPayment - P;
 
-    // Update or create chart
     this.updateChart();
   }
 
   updateChart() {
-    const data = {
-      labels: ['Principal Amount', 'Interest'],
-      datasets: [
-        {
-          data: [this.loanAmount, this.totalInterest],
-          backgroundColor: ['#76A82B', '#F7931E'],
-          borderColor: '#eeeeee',
-          borderWidth: 10,
-          hoverOffset: 8,
-        },
-      ],
-    };
-
     if (this.chart) {
       this.chart.destroy();
     }
 
     this.chart = new Chart(this.loanChart.nativeElement, {
       type: 'pie',
-      data: data,
+      data: {
+        labels: ['Principal Loan Amount', 'Total Interest'],
+        datasets: [
+          {
+            data: [this.loanAmount, this.totalInterest],
+            backgroundColor: ['#76A82B', '#F7931E'],
+            borderColor: '#eeeeee',
+            borderWidth: 10,
+            hoverOffset: 8,
+            hoverBorderColor: '#eeeeee',
+          },
+        ],
+      },
       options: {
         responsive: true,
         plugins: {
           legend: { display: false },
+          tooltip: {
+            displayColors: false,
+            backgroundColor: '#fff', //White BG
+            borderColor: '#f7931e', // Orange border
+            borderWidth: 1,
+            bodyColor: '#000',
+            callbacks: {
+              title: () => '',
+              label: (context) => {
+                const label = context.label || '';
+                const data = context.chart.data.datasets[0].data as number[];
+                const value = context.raw as number;
+                return `${label}: ${this.getPercentage(value, data)}%`;
+              },
+            },
+          },
           datalabels: {
             color: '#fff',
             font: {
               weight: 'bold',
               size: 14,
             },
-            formatter: (value, ctx) => {
-              const total = ctx.chart.data.datasets[0].data.reduce(
-                (sum: any, val: any) => sum + val,
-                0
-              );
-              const percentage = ((value / total) * 100).toFixed(1);
-              return `${percentage}%`;
+            formatter: (value: number, ctx: Context) => {
+              const data = ctx.chart.data.datasets[0].data as number[];
+              return `${this.getPercentage(value, data)}%`;
             },
           },
         },
       },
       plugins: [ChartDataLabels],
     });
+  }
+
+  private getPercentage(value: number, data: number[]): string {
+    const total = data.reduce((sum, val) => sum + val, 0);
+    return ((value / total) * 100).toFixed(1);
   }
 }

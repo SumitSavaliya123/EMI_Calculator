@@ -11,6 +11,7 @@
           [ngModel]="model | number"
           (ngModelChange)="onInputChange($event)"
           (blur)="onBlur($event)"
+          (keydown)="onKeyDown($event)"
         />
         <span class="input-group-text" *ngIf="!showTenureToggle">{{
           suffix

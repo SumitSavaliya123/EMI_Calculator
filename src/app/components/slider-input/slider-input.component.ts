@@ -26,17 +26,60 @@ export class SliderInputComponent {
   @Output() modelChange = new EventEmitter<number>();
   @Output() valueChanged = new EventEmitter<void>();
 
+  private previousValidValue: number = this.min;
+
   constructor(private decimalPipe: DecimalPipe) {}
 
+  onKeyDown(event: KeyboardEvent) {
+    const allowedKeys = [
+      '0',
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '.',
+      'Backspace',
+      'Delete',
+      'Tab',
+      'ArrowLeft',
+      'ArrowRight',
+    ];
+
+    if (!allowedKeys.includes(event.key) && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+    }
+  }
+
   onInputChange(val: string | number) {
-    const numValue = typeof val === 'string' ? +val.replace(/,/g, '') : val;
-    this.modelChange.emit(+numValue);
-    this.valueChanged.emit();
+    const stringValue =
+      typeof val === 'string' ? val.replace(/,/g, '') : val.toString();
+    const numValue = parseFloat(stringValue);
+
+    // If not a number, revert to previous value
+    if (isNaN(numValue)) {
+      this.modelChange.emit(this.previousValidValue);
+      return;
+    }
+
+    // Clamp the value between min and max
+    const clampedValue = Math.min(Math.max(numValue, this.min), this.max);
+
+    // only update if the value changed
+    if (clampedValue !== this.previousValidValue) {
+      this.previousValidValue = clampedValue;
+      this.modelChange.emit(clampedValue);
+      this.valueChanged.emit();
+    }
   }
 
   onBlur(event: FocusEvent) {
     const target = event.target as HTMLInputElement;
-    const numValue = +target.value.replace(/,/g, '');
+    const numValue = this.previousValidValue;
     target.value = this.decimalPipe.transform(numValue) || '';
   }
 

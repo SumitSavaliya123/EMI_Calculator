@@ -60,16 +60,13 @@ export class SliderInputComponent {
       typeof val === 'string' ? val.replace(/,/g, '') : val.toString();
     const numValue = parseFloat(stringValue);
 
-    // If not a number, revert to previous value
     if (isNaN(numValue)) {
       this.modelChange.emit(this.previousValidValue);
       return;
     }
 
-    // Clamp the value between min and max
     const clampedValue = Math.min(Math.max(numValue, this.min), this.max);
 
-    // only update if the value changed
     if (clampedValue !== this.previousValidValue) {
       this.previousValidValue = clampedValue;
       this.modelChange.emit(clampedValue);

@@ -1,49 +1,53 @@
-<div class="container calculator-container my-4 p-4 rounded shadow-sm w-75">
+<div
+  class="container calculator-container my-4 p-4 border-dashed rounded shadow-sm"
+>
   <h3 class="text-center">EMI CALCULATOR FOR LOAN</h3>
   <hr />
-  <app-slider-input
-    [label]="'Loan Amount'"
-    [suffix]="'₹'"
-    [min]="0"
-    [max]="20000000"
-    [step]="50000"
-    [model]="loanAmount"
-    [sliderLabels]="loanAmountLabels"
-    (modelChange)="loanAmount = $event"
-    (valueChanged)="calculateEMI()"
-  />
+  <div class="border border-secondary p-5">
+    <app-slider-input
+      [label]="'Loan Amount'"
+      [suffix]="'₹'"
+      [min]="0"
+      [max]="20000000"
+      [step]="50000"
+      [model]="loanAmount"
+      [sliderLabels]="loanAmountLabels"
+      (modelChange)="loanAmount = $event"
+      (valueChanged)="calculateEMI()"
+    />
 
-  <app-slider-input
-    [label]="'Interest Rate'"
-    [suffix]="'%'"
-    [min]="5"
-    [max]="20"
-    [step]="0.1"
-    [model]="interestRate"
-    [sliderLabels]="interestRateLabels"
-    (modelChange)="interestRate = $event"
-    (valueChanged)="calculateEMI()"
-  />
+    <app-slider-input
+      [label]="'Interest Rate'"
+      [suffix]="'%'"
+      [min]="5"
+      [max]="20"
+      [step]="0.1"
+      [model]="interestRate"
+      [sliderLabels]="interestRateLabels"
+      (modelChange)="interestRate = $event"
+      (valueChanged)="calculateEMI()"
+    />
 
-  <app-slider-input
-    [label]="'Loan Tenure'"
-    [suffix]="tenureUnit"
-    [min]="0"
-    [max]="tenureUnit === 'Yr' ? 30 : 360"
-    [step]="tenureUnit === 'Yr' ? 1 : 12"
-    [model]="loanTenure"
-    (modelChange)="loanTenure = $event"
-    (valueChanged)="calculateEMI()"
-    [sliderLabels]="tenureUnit === 'Yr' ? yearTenureLabels : monthTenureLabels"
-    [showTenureToggle]="true"
-    [tenureUnit]="tenureUnit"
-    (tenureUnitChange)="setTenureUnit($event)"
-  />
-  <hr class="m-0" />
-
+    <app-slider-input
+      [label]="'Loan Tenure'"
+      [suffix]="tenureUnit"
+      [min]="0"
+      [max]="tenureUnit === 'Yr' ? 30 : 360"
+      [step]="tenureUnit === 'Yr' ? 1 : 12"
+      [model]="loanTenure"
+      (modelChange)="loanTenure = $event"
+      (valueChanged)="calculateEMI()"
+      [sliderLabels]="
+        tenureUnit === 'Yr' ? yearTenureLabels : monthTenureLabels
+      "
+      [showTenureToggle]="true"
+      [tenureUnit]="tenureUnit"
+      (tenureUnitChange)="setTenureUnit($event)"
+    />
+  </div>
   <div class="row text-center">
-    <div class="col-md-6 col-sm-12">
-      <div class="result-card p-3 rounded border">
+    <div class="col-md-6 col-sm-12 pe-0">
+      <div class="result-card p-3 border border-secondary">
         <p class="mt-2 m-0">Loan EMI</p>
         <strong class="fs-4">₹{{ emi | ceil }}</strong>
         <hr />
@@ -55,17 +59,17 @@
         <strong class="fs-4">₹{{ totalPayment | ceil }}</strong>
       </div>
     </div>
-    <div class="col-md-6 col-sm-12">
-      <div class="chart-container p-2">
-        <p class="m-0 fw-bold">Break-up of Total Payment</p>
+    <div class="col-md-6 col-sm-12 ps-0">
+      <div class="chart-container border border-secondary">
+        <p class="m-0 fw-bold pt-1">Break-up of Total Payment</p>
         <div class="loan-chart">
           <canvas #loanChart></canvas>
         </div>
-        <div class="d-flex justify-content-center gap-4 mt-2 border row">
-          <div class="col-lg-6 col-md-12">
+        <div class="d-flex justify-content-center mt-2 row">
+          <div class="col-lg-5 col-md-12">
             <span class="legend-dot principal"></span>
             <span class="legend-label"
-              >Principal Loan Amount:
+              >Principal Amount:
               {{ ((loanAmount / totalPayment) * 100).toFixed(1) }}%</span
             >
           </div>
@@ -79,5 +83,13 @@
         </div>
       </div>
     </div>
+  </div>
+  <div class="my-4 col-12">
+    <app-bar-chart
+      [loanAmount]="loanAmount"
+      [interestRate]="interestRate"
+      [tenureInMonths]="tenureInMonths"
+      [emi]="emi"
+    ></app-bar-chart>
   </div>
 </div>

@@ -1,0 +1,42 @@
+.calculator-container {
+  background-color: #eeeeee;
+  border:1px solid black
+}
+
+.result-card {
+  font-size: 1rem;
+
+  @media (max-width: 576px) {
+    font-size: 0.9rem;
+  }
+}
+
+.loan-chart{
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4% 0%;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+
+  &.principal {
+    background-color: #76a82b;
+  }
+
+  &.interest {
+    background-color: #f7931e;
+  }
+}
+
+.legend-label {
+  font-size: 0.75rem; 
+  color: #333; 
+  font-weight: 700;
+}

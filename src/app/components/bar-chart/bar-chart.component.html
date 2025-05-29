@@ -20,3 +20,67 @@
 <div class="mt-4 border border-secondary">
   <canvas #barChart></canvas>
 </div>
+
+<div class="table-responsive mt-4 border border-secondary">
+  <table class="table table-bordered text-center align-middle">
+    <thead class="table-light">
+      <tr>
+        <th class="month-bg">Year</th>
+        <th class="principal-th">Principal (A)</th>
+        <th class="interest-th">Interest (B)</th>
+        <th class="month-bg">Total Payment (A + B)</th>
+        <th class="balance-th">Balance</th>
+        <th class="month-bg loan-percentage-th">Loan Paid To Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container
+        *ngFor="let row of emiSchedule; let i = index; trackBy: trackByYear"
+      >
+        <tr>
+          <td
+            class="years-td d-flex align-items-center justify-content-center fw-bold"
+            (click)="toggleExpand(i)"
+          >
+            <button class="btn btn-sm">
+              <span class="px-1 my-1 border border-dark">
+                {{ expandedIndex === i ? "−" : "+" }}
+              </span>
+            </button>
+            {{ row.year }}
+          </td>
+          <td class="years-td">₹{{ row.principal | number : "1.0-0" }}</td>
+          <td class="years-td">₹{{ row.interest | number : "1.0-0" }}</td>
+          <td class="years-td">
+            ₹{{ row.principal + row.interest | number : "1.0-0" }}
+          </td>
+          <td class="years-td">₹{{ row.balance | number : "1.0-0" }}</td>
+          <td class="years-td">
+            {{
+              ((loanAmount - row.balance) / loanAmount) * 100
+                | number : "1.2-2"
+            }}%
+          </td>
+        </tr>
+
+        <ng-container *ngIf="expandedIndex === i">
+          <tr *ngFor="let m of row.monthlyEmi; trackBy: trackByMonth">
+            <td class="month-bg">{{ m.month }}</td>
+            <td class="month-bg">₹{{ m.principal | number : "1.0-0" }}</td>
+            <td class="month-bg">₹{{ m.interest | number : "1.0-0" }}</td>
+            <td class="month-bg">
+              ₹{{ m.principal + m.interest | number : "1.0-0" }}
+            </td>
+            <td class="month-bg">₹{{ m.balance | number : "1.0-0" }}</td>
+            <td class="month-bg">
+              {{
+                ((loanAmount - m.balance) / loanAmount) * 100
+                  | number : "1.2-2"
+              }}%
+            </td>
+          </tr>
+        </ng-container>
+      </ng-container>
+    </tbody>
+  </table>
+</div>

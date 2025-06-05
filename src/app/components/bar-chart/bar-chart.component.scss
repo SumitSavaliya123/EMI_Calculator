@@ -1,3 +1,46 @@
 canvas {
-    max-height: 450px;
+  max-height: 450px;
+}
+
+table th,
+table td {
+  vertical-align: middle;
+}
+
+thead {
+  background-color: #f8f9fa;
+}
+
+.table td,
+.table th {
+  padding: 0.75rem;
+}
+
+.month-bg {
+  background-color: #dedede;
+  border: 0.1px solid #cfcfcf;
+}
+
+.principal-th{
+  background-color: #88a825;
+  color: white;
+}
+
+.interest-th{
+  background-color: #ed8c2b;
+  color: white;
+}
+
+.balance-th{
+  background-color: #b8204c;
+  color: white;
+  min-width: 170px;
+}
+
+.years-td {
+  background-color: #eeeeee;
+}
+
+.loan-percentage-th {
+  max-width: 120px;
 }

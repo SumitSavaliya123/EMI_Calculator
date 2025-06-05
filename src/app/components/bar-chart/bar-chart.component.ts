@@ -10,14 +10,15 @@ import {
 import { FormsModule } from '@angular/forms';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { YearlyEmi } from '../../models/yearly-emi';
+import { MonthlyEmi, YearlyEmi } from '../../models/yearly-emi';
 
 Chart.register(ChartDataLabels);
+
 @Component({
   selector: 'app-bar-chart',
   imports: [CommonModule, FormsModule],
   templateUrl: './bar-chart.component.html',
-  styleUrl: './bar-chart.component.scss',
+  styleUrls: ['./bar-chart.component.scss'],
 })
 export class BarChartComponent implements OnChanges {
   @Input() loanAmount: number = 0;
@@ -25,11 +26,14 @@ export class BarChartComponent implements OnChanges {
   @Input() tenureInMonths: number = 0;
   @Input() emi: number = 0;
 
-  startDate: string = new Date().toISOString().slice(0, 7);
-  yearViewType: 'calendar' | 'financial' = 'calendar';
+  @ViewChild('barChart', { static: true }) barChart!: ElementRef;
   stackedBarChart: Chart | undefined;
 
-  @ViewChild('barChart', { static: true }) barChart!: ElementRef;
+  startDate: string = new Date().toISOString().slice(0, 7);
+  yearViewType: 'calendar' | 'financial' = 'calendar';
+  emiSchedule: YearlyEmi[] = [];
+
+  expandedIndex: number | null = null;
 
   ngOnChanges(changes: SimpleChanges) {
     if (
@@ -52,12 +56,17 @@ export class BarChartComponent implements OnChanges {
     this.generateBarChart();
   }
 
+  toggleExpand(index: number) {
+    this.expandedIndex = this.expandedIndex === index ? null : index;
+  }
+
   generateBarChart() {
     if (this.stackedBarChart) {
       this.stackedBarChart.destroy();
     }
 
     const schedule = this.getYearlyEMISchedule();
+    this.emiSchedule = schedule;
     const labels = schedule.map((s) => s.year);
     const principalData = schedule.map((s) => s.principal);
     const interestData = schedule.map((s) => s.interest);
@@ -218,34 +227,54 @@ export class BarChartComponent implements OnChanges {
       const principal = emi - interest;
       balance -= principal;
 
-      if (balance < 0 && balance > -1) {
-        balance = 0;
-      }
+      if (balance < 0 && balance > -1) balance = 0;
 
       const year =
         this.yearViewType === 'calendar'
           ? currentDate.getFullYear().toString()
           : (() => {
-              const fyStartYear =
+              const fyStart =
                 currentDate.getMonth() + 1 >= 4
                   ? currentDate.getFullYear()
                   : currentDate.getFullYear() - 1;
-              const fyEndYearShort = (fyStartYear + 1).toString().slice(-2);
-              return `FY${fyEndYearShort}`;
+              return `FY${(fyStart + 1).toString().slice(-2)}`;
             })();
+
+      const month = currentDate.toLocaleString('default', { month: 'short' });
 
       let yearData = schedule.find((s) => s.year === year);
       if (!yearData) {
-        yearData = { year, principal: 0, interest: 0, balance: 0 };
+        yearData = {
+          year,
+          principal: 0,
+          interest: 0,
+          balance: 0,
+          monthlyEmi: [],
+        };
         schedule.push(yearData);
       }
 
       yearData.principal += principal;
       yearData.interest += interest;
       yearData.balance = balance;
+      yearData.monthlyEmi?.push({
+        month,
+        principal,
+        interest,
+        balance,
+      });
+
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
     return schedule;
+  }
+
+  trackByYear(index: number, item: YearlyEmi): string {
+    return item.year;
+  }
+
+  trackByMonth(index: number, item: MonthlyEmi): string {
+    return item.month;
   }
 }

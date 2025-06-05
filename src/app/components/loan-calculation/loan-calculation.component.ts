@@ -9,6 +9,7 @@ import { BarChartComponent } from '../bar-chart/bar-chart.component';
 import { SliderInputComponent } from '../slider-input/slider-input.component';
 
 Chart.register(ChartDataLabels);
+
 @Component({
   selector: 'app-loan-calculation',
   standalone: true,
@@ -31,6 +32,16 @@ export class LoanCalculationComponent implements OnInit {
   emi = 0;
   totalInterest = 0;
   totalPayment = 0;
+  loanStartMonth!: string;
+  prepaymentAmount = 0;
+  minPrepaymentMonth: string = '';
+  prepaymentOption: 'reduceTenure' | 'reduceEMI' = 'reduceTenure';
+  prepaymentStartMonth: string = '2025-09';
+  originalEmi = 0;
+  originalTotalInterest = 0;
+  originalTenureInMonths = 0;
+  reducedTenureInMonths = 0;
+  applyPrepayment = false;
   loanAmountLabels = ['0', '50L', '100L', '150L', '200L'];
   interestRateLabels = ['5', '7.5', '10', '12.5', '15', '17.5', '20'];
   yearTenureLabels = ['0', '5', '10', '15', '20', '25', '30'];
@@ -40,6 +51,10 @@ export class LoanCalculationComponent implements OnInit {
   @ViewChild('loanChart', { static: true }) loanChart!: ElementRef;
 
   ngOnInit() {
+    const now = new Date();
+    this.loanStartMonth = new Date().toISOString().slice(0, 7);
+    const minPrepayDate = new Date(now.getFullYear(), now.getMonth() + 2);
+    this.minPrepaymentMonth = minPrepayDate.toISOString().slice(0, 7);
     this.calculateEMI();
   }
 
@@ -60,6 +75,24 @@ export class LoanCalculationComponent implements OnInit {
     this.calculateEMI();
   }
 
+  onPrepaymentStartMonthChange(newMonth: string) {
+    this.prepaymentStartMonth = newMonth;
+    if (this.applyPrepayment) {
+      this.calculateEMI();
+    }
+  }
+
+  onPrepaymentOptionChange() {
+    this.applyPrepayment = true;
+    this.calculateEMI();
+  }
+
+  onPrepaymentAmountChange(amount: number) {
+    this.prepaymentAmount = amount;
+    this.applyPrepayment = true;
+    this.calculateEMI();
+  }
+
   calculateEMI() {
     const P = this.loanAmount;
     const R = this.interestRate / (12 * 100);
@@ -69,12 +102,84 @@ export class LoanCalculationComponent implements OnInit {
       this.emi = 0;
       this.totalPayment = 0;
       this.totalInterest = 0;
+      this.updateChart();
       return;
     }
 
-    this.emi = (P * R * Math.pow(1 + R, N)) / (Math.pow(1 + R, N) - 1);
+    // Base calculation without prepayment
+    this.originalEmi = (P * R * Math.pow(1 + R, N)) / (Math.pow(1 + R, N) - 1);
+    this.originalTotalInterest = this.originalEmi * N - P;
+    this.originalTenureInMonths = N;
+    this.reducedTenureInMonths = N;
+
+    // Default values without prepayment
+    this.emi = this.originalEmi;
+    this.totalInterest = this.originalTotalInterest;
     this.totalPayment = this.emi * N;
-    this.totalInterest = this.totalPayment - P;
+
+    if (this.applyPrepayment && this.prepaymentAmount > 0) {
+      // Calculate prepayment month index
+      const loanStartDate = new Date(`${this.loanStartMonth}-01`);
+      const prepaymentDate = new Date(`${this.prepaymentStartMonth}-01`);
+      let prepaymentMonthIndex = 0;
+
+      if (prepaymentDate > loanStartDate) {
+        const startYear = loanStartDate.getFullYear();
+        const startMonth = loanStartDate.getMonth();
+        const endYear = prepaymentDate.getFullYear();
+        const endMonth = prepaymentDate.getMonth();
+        prepaymentMonthIndex =
+          (endYear - startYear) * 12 + (endMonth - startMonth);
+      }
+
+      // Simulate EMI schedule up to prepayment month
+      let balance = this.loanAmount;
+      let totalInterestPaid = 0;
+      let monthIndex = 0;
+      let prepaymentApplied = false;
+      let emi = this.originalEmi;
+
+      while (balance > 0.5 && monthIndex < 1000) {
+        if (monthIndex === prepaymentMonthIndex && !prepaymentApplied) {
+          balance -= this.prepaymentAmount;
+          prepaymentApplied = true;
+
+          if (this.prepaymentOption === 'reduceTenure') {
+            // EMI remains the same, tenure reduces naturally
+            emi = this.originalEmi;
+          } else {
+            // Recalculate EMI for the remaining months
+            const remainingMonths = this.tenureInMonths - monthIndex;
+            if (remainingMonths > 0) {
+              emi =
+                (balance * R * Math.pow(1 + R, remainingMonths)) /
+                (Math.pow(1 + R, remainingMonths) - 1);
+            }
+          }
+        }
+
+        const interest = balance * R;
+        const principal = emi - interest;
+        balance -= principal;
+
+        if (balance < 0 && balance > -1) balance = 0;
+
+        totalInterestPaid += interest;
+        monthIndex++;
+
+        if (balance <= 0) break;
+      }
+
+      // Update metrics based on the new schedule
+      this.reducedTenureInMonths = monthIndex;
+      this.emi =
+        this.prepaymentOption === 'reduceTenure' ? this.originalEmi : emi;
+      this.totalInterest = totalInterestPaid;
+      this.totalPayment =
+        this.emi * prepaymentMonthIndex +
+        this.emi * (this.reducedTenureInMonths - prepaymentMonthIndex) +
+        this.prepaymentAmount;
+    }
 
     this.updateChart();
   }
@@ -105,8 +210,8 @@ export class LoanCalculationComponent implements OnInit {
           legend: { display: false },
           tooltip: {
             displayColors: false,
-            backgroundColor: '#fff', //White BG
-            borderColor: '#f7931e', // Orange border
+            backgroundColor: '#fff',
+            borderColor: '#f7931e',
             borderWidth: 1,
             bodyColor: '#000',
             callbacks: {

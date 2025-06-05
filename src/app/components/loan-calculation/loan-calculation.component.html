@@ -45,21 +45,136 @@
       (tenureUnitChange)="setTenureUnit($event)"
     />
   </div>
-  <div class="row text-center">
-    <div class="col-md-6 col-sm-12 pe-0">
+  <div class="row p-3">
+    <div class="col-lg-8 col-md-12 border border-secondary p-3 mt-3">
+      <h5 class="text-center">Prepayment Options</h5>
+      <div class="row">
+        <div class="col-md-12">
+          <app-slider-input
+            [label]="'Prepayment Amount'"
+            [suffix]="'₹'"
+            [min]="0"
+            [max]="loanAmount"
+            [step]="10000"
+            [model]="prepaymentAmount"
+            (modelChange)="onPrepaymentAmountChange($event)"
+          />
+        </div>
+        <div class="col-md-12">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="fw-bold">Prepayment Option</label>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="prepaymentOption"
+                    id="reduceTenure"
+                    [(ngModel)]="prepaymentOption"
+                    [value]="'reduceTenure'"
+                    (change)="onPrepaymentOptionChange()"
+                  />
+                  <label class="form-check-label" for="reduceTenure"
+                    >Reduce Tenure</label
+                  >
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="prepaymentOption"
+                    id="reduceEMI"
+                    [(ngModel)]="prepaymentOption"
+                    [value]="'reduceEMI'"
+                    (change)="onPrepaymentOptionChange()"
+                  />
+                  <label class="form-check-label" for="reduceEMI"
+                    >Reduce EMI</label
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <label class="fw-bold">Start Month</label>
+                <input
+                  type="month"
+                  class="form-control"
+                  [(ngModel)]="prepaymentStartMonth"
+                  [min]="minPrepaymentMonth"
+                  (ngModelChange)="onPrepaymentStartMonthChange($event)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 col-md-12 border border-secondary p-3 mt-3">
+      <h5 class="text-center">Prepayment Benefits</h5>
+
+      <div class="text-center my-4">
+        <p class="m-0">Interest Savings</p>
+        <strong class="fs-4 text-success"
+          >₹{{ originalTotalInterest - totalInterest || 0 | ceil }}</strong
+        >
+      </div>
+
+      <div class="text-center mb-3" *ngIf="prepaymentOption === 'reduceTenure'">
+        <p class="m-0">Tenure Reduced By</p>
+        <strong class="fs-4 text-success"
+          >{{
+            originalTenureInMonths - reducedTenureInMonths || 0
+          }}
+          months</strong
+        >
+      </div>
+
+      <div class="text-center mb-3" *ngIf="prepaymentOption === 'reduceEMI'">
+        <p class="m-0">EMI Reduced By</p>
+        <strong class="fs-4 text-success"
+          >₹{{ originalEmi - emi || 0 | ceil }}</strong
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="row text-center mt-3">
+    <div class="col-md-6 col-sm-12">
       <div class="result-card p-3 border border-secondary">
-        <p class="mt-2 m-0">Loan EMI</p>
-        <strong class="fs-4">₹{{ emi | ceil }}</strong>
+        <div
+          *ngIf="
+            applyPrepayment && prepaymentOption === 'reduceEMI';
+            else normalEmi
+          "
+        >
+          <div class="row text-center">
+            <div class="col-6 border-end">
+              <p class="mt-2 m-0">Old EMI</p>
+              <strong class="fs-4 text-muted">₹{{ originalEmi | ceil }}</strong>
+            </div>
+            <div class="col-6">
+              <p class="mt-2 m-0">New EMI</p>
+              <strong class="fs-4 text-success">₹{{ emi | ceil }}</strong>
+            </div>
+          </div>
+        </div>
+        <ng-template #normalEmi>
+          <p class="mt-2 m-0">Loan EMI</p>
+          <strong class="fs-4">₹{{ emi | ceil }}</strong>
+        </ng-template>
         <hr />
         <p class="mt-2 m-0">Total Interest</p>
-        <strong class="fs-4"> ₹{{ totalInterest | ceil }}</strong>
+        <strong class="fs-4">₹{{ totalInterest | ceil }}</strong>
         <hr />
         <p class="mt-2 m-0">Total Payment</p>
         <p class="m-0">(Principal + Interest)</p>
         <strong class="fs-4">₹{{ totalPayment | ceil }}</strong>
       </div>
     </div>
-    <div class="col-md-6 col-sm-12 ps-0">
+    <div class="col-md-6 col-sm-12">
       <div class="chart-container border border-secondary">
         <p class="m-0 fw-bold pt-1">Break-up of Total Payment</p>
         <div class="loan-chart">
@@ -84,12 +199,17 @@
       </div>
     </div>
   </div>
+
   <div class="my-4 col-12">
     <app-bar-chart
       [loanAmount]="loanAmount"
       [interestRate]="interestRate"
       [tenureInMonths]="tenureInMonths"
-      [emi]="emi"
+      [originalEmi]="originalEmi"
+      [prepaymentAmount]="prepaymentAmount"
+      [prepaymentOption]="prepaymentOption"
+      [prepaymentStartMonth]="prepaymentStartMonth"
+      [startDate]="loanStartMonth"
     ></app-bar-chart>
   </div>
 </div>

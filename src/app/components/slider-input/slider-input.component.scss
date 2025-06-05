@@ -6,17 +6,23 @@
   --mdc-slider-focus-handle-color: orange;
   --mdc-slider-hover-handle-color: orange;
   --mdc-slider-handle-size: 20px;
-  --mdc-slider-track-height: 6px;
+  --mdc-slider-track-height: 10px;
 
-  /* Add these properties to make the thumb perfectly round */
-  --mdc-slider-handle-width: 20px;
-  --mdc-slider-handle-height: 20px;
+  /* Make the thumb perfectly round */
+  --mdc-slider-handle-width: 25px;
+  --mdc-slider-handle-height: 25px;
   --mdc-slider-handle-shape: 50%;
 
-  /* For better focus state */
+  /* Better focus state */
   --mdc-slider-focus-state-layer-width: 40px;
   --mdc-slider-focus-state-layer-height: 40px;
   --mdc-slider-focus-state-layer-color: rgba(255, 165, 0, 0.2);
+  
+  /* Additional properties for better visibility */
+  --mdc-slider-active-track-height: 10px;
+  --mdc-slider-inactive-track-height: 10px;
+  --mdc-slider-with-tick-marks-active-container-height: 10px;
+  --mdc-slider-with-tick-marks-inactive-container-height: 10px;
 }
 
 .slider-labels {

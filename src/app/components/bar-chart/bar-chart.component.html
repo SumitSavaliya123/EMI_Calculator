@@ -1,22 +1,31 @@
-<div
-  class="d-flex align-items-center gap-3 border border-secondary justify-content-center py-3 px-5"
->
-  <label class="fw-bold">Schedule showing EMI payments starting from</label>
-  <input
-    type="month"
-    class="form-control w-auto"
-    [(ngModel)]="startDate"
-    (ngModelChange)="onStartDateChange($event)"
-  />
-  <select
-    class="form-select w-auto"
-    [(ngModel)]="yearViewType"
-    (ngModelChange)="onYearViewTypeChange($event)"
-  >
-    <option value="calendar">Calendar Year wise</option>
-    <option value="financial">Financial Year wise</option>
-  </select>
+<div class="container border border-secondary py-3 px-4">
+  <div class="row gy-3 align-items-center">
+    <div class="col-12 col-md-4">
+      <label class="fw-bold w-100"
+        >Schedule showing EMI payments starting from</label
+      >
+    </div>
+    <div class="col-12 col-md-4">
+      <input
+        type="month"
+        class="form-control"
+        [(ngModel)]="startDate"
+        (ngModelChange)="onStartDateChange($event)"
+      />
+    </div>
+    <div class="col-12 col-md-4">
+      <select
+        class="form-select"
+        [(ngModel)]="yearViewType"
+        (ngModelChange)="onYearViewTypeChange($event)"
+      >
+        <option value="calendar">Calendar Year wise</option>
+        <option value="financial">Financial Year wise</option>
+      </select>
+    </div>
+  </div>
 </div>
+
 <div class="mt-4 border border-secondary">
   <canvas #barChart></canvas>
 </div>
@@ -30,6 +39,7 @@
         <th class="interest-th">Interest (B)</th>
         <th class="month-bg">Total Payment (A + B)</th>
         <th class="balance-th">Balance</th>
+        <th class="month-bg">Prepayment</th>
         <th class="month-bg loan-percentage-th">Loan Paid To Date</th>
       </tr>
     </thead>
@@ -55,6 +65,7 @@
             ₹{{ row.principal + row.interest | number : "1.0-0" }}
           </td>
           <td class="years-td">₹{{ row.balance | number : "1.0-0" }}</td>
+          <td class="years-td">₹{{ row.prepayment | number : "1.0-0" }}</td>
           <td class="years-td">
             {{
               ((loanAmount - row.balance) / loanAmount) * 100
@@ -72,6 +83,9 @@
               ₹{{ m.principal + m.interest | number : "1.0-0" }}
             </td>
             <td class="month-bg">₹{{ m.balance | number : "1.0-0" }}</td>
+            <td class="month-bg">
+              ₹{{ m.prepayment || 0 | number : "1.0-0" }}
+            </td>
             <td class="month-bg">
               {{
                 ((loanAmount - m.balance) / loanAmount) * 100

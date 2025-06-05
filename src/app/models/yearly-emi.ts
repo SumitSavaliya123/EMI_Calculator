@@ -4,6 +4,7 @@ export interface YearlyEmi {
   interest: number;
   balance: number;
   monthlyEmi?: MonthlyEmi[];
+  prepayment?: number;
 }
 
 export interface MonthlyEmi {
@@ -11,4 +12,7 @@ export interface MonthlyEmi {
   principal: number;
   interest: number;
   balance: number;
+  prepayment?: number;
+  totalPayment?: number;
+  emi?: number;
 }

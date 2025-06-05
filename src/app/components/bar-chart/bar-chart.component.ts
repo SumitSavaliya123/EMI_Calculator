@@ -24,15 +24,17 @@ export class BarChartComponent implements OnChanges {
   @Input() loanAmount: number = 0;
   @Input() interestRate: number = 0;
   @Input() tenureInMonths: number = 0;
-  @Input() emi: number = 0;
+  @Input() originalEmi: number = 0;
+  @Input() prepaymentAmount: number = 0;
+  @Input() prepaymentOption: 'reduceTenure' | 'reduceEMI' = 'reduceTenure';
+  @Input() prepaymentStartMonth: string = new Date().toISOString().slice(0, 7);
+  @Input() startDate: string = new Date().toISOString().slice(0, 7);
 
   @ViewChild('barChart', { static: true }) barChart!: ElementRef;
-  stackedBarChart: Chart | undefined;
 
-  startDate: string = new Date().toISOString().slice(0, 7);
+  stackedBarChart: Chart | undefined;
   yearViewType: 'calendar' | 'financial' = 'calendar';
   emiSchedule: YearlyEmi[] = [];
-
   expandedIndex: number | null = null;
 
   ngOnChanges(changes: SimpleChanges) {
@@ -40,7 +42,11 @@ export class BarChartComponent implements OnChanges {
       changes['loanAmount'] ||
       changes['interestRate'] ||
       changes['tenureInMonths'] ||
-      changes['emi']
+      changes['emi'] ||
+      changes['prepaymentAmount'] ||
+      changes['prepaymentOption'] ||
+      changes['prepaymentStartMonth'] ||
+      changes['startDate']
     ) {
       this.generateBarChart();
     }
@@ -219,12 +225,58 @@ export class BarChartComponent implements OnChanges {
     const schedule: YearlyEmi[] = [];
     let balance = this.loanAmount;
     const R = this.interestRate / (12 * 100);
-    const emi = this.emi;
+    let emi = this.originalEmi;
     let currentDate = new Date(`${this.startDate}-01`);
+    let prepaymentApplied = false;
+    let monthIndex = 0;
 
-    for (let i = 0; i < this.tenureInMonths; i++) {
+    // Calculate the month index where prepayment should be applied
+    const prepaymentDate = new Date(`${this.prepaymentStartMonth}-01`);
+    let prepaymentMonthIndex = 0;
+    const startDateObj = new Date(`${this.startDate}-01`);
+    if (prepaymentDate > startDateObj) {
+      const startYear = startDateObj.getFullYear();
+      const startMonth = startDateObj.getMonth();
+      const endYear = prepaymentDate.getFullYear();
+      const endMonth = prepaymentDate.getMonth();
+      prepaymentMonthIndex =
+        (endYear - startYear) * 12 + (endMonth - startMonth);
+    }
+
+    while (balance > 0.5 && monthIndex < 1000) {
+      // Apply prepayment at the specified month
+      if (monthIndex === prepaymentMonthIndex && !prepaymentApplied) {
+        balance -= this.prepaymentAmount;
+        prepaymentApplied = true;
+
+        if (this.prepaymentOption === 'reduceTenure') {
+          // EMI remains the same, tenure reduces naturally as balance decreases
+          emi = this.originalEmi;
+        } else {
+          // Recalculate EMI for the remaining months
+          const remainingMonths = this.tenureInMonths - monthIndex;
+          if (remainingMonths > 0) {
+            emi =
+              (balance * R * Math.pow(1 + R, remainingMonths)) /
+              (Math.pow(1 + R, remainingMonths) - 1);
+          }
+        }
+      }
+
+      // Calculate interest for the current month
       const interest = balance * R;
-      const principal = emi - interest;
+
+      // Check if this is the final payment
+      let principal = 0;
+      if (balance * (1 + R) < emi) {
+        // Final payment case - just pay the remaining balance plus interest
+        principal = balance;
+        emi = principal + interest; // Adjust EMI to exact remaining amount
+      } else {
+        // Normal case
+        principal = emi - interest;
+      }
+
       balance -= principal;
 
       if (balance < 0 && balance > -1) balance = 0;
@@ -250,6 +302,10 @@ export class BarChartComponent implements OnChanges {
           interest: 0,
           balance: 0,
           monthlyEmi: [],
+          prepayment:
+            monthIndex === prepaymentMonthIndex && prepaymentApplied
+              ? this.prepaymentAmount
+              : 0,
         };
         schedule.push(yearData);
       }
@@ -262,9 +318,20 @@ export class BarChartComponent implements OnChanges {
         principal,
         interest,
         balance,
+        emi,
+        prepayment:
+          monthIndex === prepaymentMonthIndex && prepaymentApplied
+            ? this.prepaymentAmount
+            : 0,
       });
 
+      // Update prepayment amount for the year if applicable
+      if (Number(prepaymentDate?.getFullYear()) == Number(year)) {
+        yearData.prepayment = this.prepaymentAmount;
+      }
+
       currentDate.setMonth(currentDate.getMonth() + 1);
+      monthIndex++;
     }
 
     return schedule;

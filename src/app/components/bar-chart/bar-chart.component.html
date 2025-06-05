@@ -1,0 +1,22 @@
+<div
+  class="d-flex align-items-center gap-3 border border-secondary justify-content-center py-3 px-5"
+>
+  <label class="fw-bold">Schedule showing EMI payments starting from</label>
+  <input
+    type="month"
+    class="form-control w-auto"
+    [(ngModel)]="startDate"
+    (ngModelChange)="onStartDateChange($event)"
+  />
+  <select
+    class="form-select w-auto"
+    [(ngModel)]="yearViewType"
+    (ngModelChange)="onYearViewTypeChange($event)"
+  >
+    <option value="calendar">Calendar Year wise</option>
+    <option value="financial">Financial Year wise</option>
+  </select>
+</div>
+<div class="mt-4 border border-secondary">
+  <canvas #barChart></canvas>
+</div>

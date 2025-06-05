@@ -5,6 +5,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import Chart from 'chart.js/auto';
 import ChartDataLabels, { Context } from 'chartjs-plugin-datalabels';
 import { CeilPipe } from '../../pipes/ceil.pipe';
+import { BarChartComponent } from '../bar-chart/bar-chart.component';
 import { SliderInputComponent } from '../slider-input/slider-input.component';
 
 Chart.register(ChartDataLabels);
@@ -17,6 +18,7 @@ Chart.register(ChartDataLabels);
     MatSliderModule,
     SliderInputComponent,
     CeilPipe,
+    BarChartComponent,
   ],
   templateUrl: './loan-calculation.component.html',
   styleUrls: ['./loan-calculation.component.scss'],
